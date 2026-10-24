@@ -1,108 +1,286 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#073b50">
-<title>Teknaf Beach Football | Created by Mohammed Faisal</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Teknaf Beach Football</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#073b50;color:#fff;font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif;text-align:center}
-header{padding:18px 12px 8px}h1{margin:0;font-size:clamp(22px,5vw,38px);letter-spacing:.04em}header p{margin:5px 0;color:#c7e8ed}
-.wrap{width:min(100%,980px);margin:auto;padding:0 10px 20px}
-canvas{display:block;width:100%;height:auto;border-radius:14px;border:2px solid #ffffff44;touch-action:none;background:#e9c58b}
-.hud{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:10px 0;font-weight:700}
-.pill{background:#ffffff16;border:1px solid #ffffff35;border-radius:99px;padding:8px 12px}
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:520px;margin:12px auto}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;align-items:center}
-button{border:0;border-radius:12px;padding:13px 10px;background:#f8d36c;color:#173b42;font-weight:800;font-size:17px;touch-action:none}
-.pad button{padding:12px 0;background:#e9f4f3}
-.pad .empty{visibility:hidden}
-#kick{background:#ff8b56;color:#321b11}
-.note{font-size:13px;color:#d0e8e9;line-height:1.6}
-footer{padding:16px;color:#c8e0e3;font-size:13px}
-.boards{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0}
-.boards span{background:#124e4d;border:1px solid #7ec4a5;border-radius:8px;padding:7px 10px;font-size:13px}
-#message{min-height:24px;color:#ffe6a1;font-weight:700}
+*{box-sizing:border-box}
+body{margin:0;background:#082f3b;color:white;font-family:Arial,sans-serif;text-align:center}
+h2{margin:12px 0 4px;font-size:22px}
+p{margin:5px;font-size:13px;color:#cce7e9}
+#score{padding:10px;font-weight:bold;font-size:17px}
+canvas{display:block;width:100%;max-width:950px;margin:auto;border-radius:12px;touch-action:none}
+.controls{display:flex;justify-content:space-around;align-items:center;gap:8px;padding:12px}
+.pad{display:grid;grid-template-columns:48px 48px 48px;gap:4px}
+button{border:0;border-radius:12px;padding:13px;background:#e2f1ed;color:#123a42;font-weight:bold;font-size:18px;touch-action:none}
+.blank{visibility:hidden}
+.action{background:#ffd078;min-width:65px}
+#message{min-height:24px;color:#ffe7a4}
 </style>
 </head>
 <body>
-<header>
-<h1>⚽ TEKNAF BEACH FOOTBALL</h1>
-<p>সমুদ্রের বুকে ফুটবলের লড়াই · টেকনাফ, বাংলাদেশ</p>
-</header>
-<div class="wrap">
-<div class="boards"><span>টেকনাফ সমুদ্রসৈকত</span><span>নাফ নদী</span><span>শাহপরীর দ্বীপ</span><span>উপকূলের ঐতিহ্য</span></div>
-<div class="hud"><span class="pill">আপনি <b id="us">0</b></span><span class="pill">সময় <b id="clock">90</b>s</span><span class="pill">প্রতিপক্ষ <b id="them">0</b></span></div>
-<canvas id="field" width="900" height="520" aria-label="Beach football game"></canvas>
-<div id="message">বল কাছে আনুন, তারপর শট দিন!</div>
+<h2>⚽ TEKNAF BEACH FOOTBALL</h2>
+<p>সমুদ্র, পাহাড় আর বালুর মাঠে ফুটবল</p>
+<div id="score">টেকনাফ 0 — 0 প্রতিপক্ষ | 90 সেকেন্ড</div>
+<canvas id="game" width="900" height="560"></canvas>
 <div class="controls">
-<div class="pad">
-<button class="empty"> </button><button data-key="up">▲</button><button class="empty"> </button>
-<button data-key="left">◀</button><button data-key="down">▼</button><button data-key="right">▶</button>
+  <div class="pad">
+    <button class="blank"> </button><button data-key="up">▲</button><button class="blank"> </button>
+    <button data-key="left">◀</button><button data-key="down">▼</button><button data-key="right">▶</button>
+  </div>
+  <button class="action" id="pass">পাস</button>
+  <button class="action" id="shoot">শট ⚽</button>
 </div>
-<button id="kick">⚽ শট / কিক</button>
-</div>
-<p class="note">মোবাইলে তীর বাটন ধরে খেলুন। কম্পিউটারে WASD বা Arrow keys, Space = শট। গোল হলে ম্যাচের স্কোর বাড়বে।</p>
-<footer>Created by <strong>Mohammed Faisal</strong><br>একটি স্বাধীন, স্পন্সরবিহীন টেকনাফ-অনুপ্রাণিত গেম ডেমো</footer>
-</div>
+<div id="message">দিকের বাটন ধরে খেলোয়াড় চালান। বল কাছে এলে শট বা পাস দিন।</div>
+<p>Created by Mohammed Faisal · No sponsors</p>
+
 <script>
-const c=document.getElementById('field'),ctx=c.getContext('2d');
-const state={score:0,opp:0,time:90,over:false};
-const p={x:240,y:365,r:18},e={x:620,y:360,r:18},b={x:300,y:365,vx:0,vy:0};
-const keys={};let last=performance.now(),goalFlash=0;
-function keyName(k){return ({ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',' ':'kick'})[k]||k.toLowerCase()}
-addEventListener('keydown',ev=>{keys[keyName(ev.key)]=true;if(ev.key===' ')ev.preventDefault()});
-addEventListener('keyup',ev=>keys[keyName(ev.key)]=false);
-document.querySelectorAll('[data-key]').forEach(btn=>{
- const k=btn.dataset.key;
- btn.addEventListener('pointerdown',ev=>{ev.preventDefault();keys[k]=true;btn.setPointerCapture(ev.pointerId)});
- ['pointerup','pointercancel','lostpointercapture'].forEach(t=>btn.addEventListener(t,()=>keys[k]=false));
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const W=900,H=560;
+const keys={};
+let score=0,enemyScore=0,time=90,last=performance.now();
+let ended=false,goalFlash=0;
+
+const player={x:340,y:445};
+const enemy={x:650,y:390};
+const teammate={x:450,y:350};
+const ball={x:360,y:430,vx:0,vy:0,z:0,vz:0};
+
+function press(key,on){
+  keys[key]=on;
+}
+document.querySelectorAll("[data-key]").forEach(btn=>{
+  const k=btn.dataset.key;
+  btn.addEventListener("pointerdown",e=>{
+    e.preventDefault();press(k,true);
+    btn.setPointerCapture(e.pointerId);
+  });
+  ["pointerup","pointercancel","lostpointercapture"].forEach(ev=>{
+    btn.addEventListener(ev,()=>press(k,false));
+  });
 });
-document.getElementById('kick').addEventListener('pointerdown',ev=>{ev.preventDefault();kick()});
-function kick(){if(state.over)return;let dx=b.x-p.x,dy=b.y-p.y,d=Math.hypot(dx,dy);if(d<65){let a=Math.atan2(dy,dx);b.vx=Math.cos(a)*10;b.vy=Math.sin(a)*8;}}
-function draw(){
- // sky, sea, distant hills
- let g=ctx.createLinearGradient(0,0,0,230);g.addColorStop(0,'#86d9f2');g.addColorStop(1,'#d8f2ed');ctx.fillStyle=g;ctx.fillRect(0,0,900,520);
- ctx.fillStyle='#178eae';ctx.fillRect(0,100,900,135);
- ctx.strokeStyle='#b9edf1';ctx.lineWidth=3;
- for(let y=112;y<220;y+=23){ctx.beginPath();for(let x=0;x<=900;x+=8)ctx.lineTo(x,y+Math.sin(x*.025+y*.08)*4);ctx.stroke();}
- ctx.fillStyle='#597d64';ctx.beginPath();ctx.moveTo(0,145);ctx.lineTo(130,58);ctx.lineTo(270,150);ctx.lineTo(440,72);ctx.lineTo(620,150);ctx.lineTo(760,60);ctx.lineTo(900,140);ctx.lineTo(900,235);ctx.lineTo(0,235);ctx.fill();
- // sand
- ctx.fillStyle='#e8c58b';ctx.fillRect(0,230,900,290);
- for(let i=0;i<360;i++){ctx.fillStyle=i%2?'#dcb77d':'#f2d5a4';ctx.fillRect((i*191)%900,230+(i*83)%290,2,2)}
- // beach pitch
- ctx.strokeStyle='#fff9';ctx.lineWidth=3;ctx.strokeRect(35,250,830,245);ctx.beginPath();ctx.moveTo(450,250);ctx.lineTo(450,495);ctx.stroke();ctx.beginPath();ctx.arc(450,372,58,0,Math.PI*2);ctx.stroke();
- // end goals
- ctx.lineWidth=5;ctx.strokeStyle='#fff';ctx.strokeRect(35,330,35,85);ctx.strokeRect(830,330,35,85);
- ctx.strokeStyle='#fff8';ctx.lineWidth=1;for(let y=335;y<415;y+=12){ctx.beginPath();ctx.moveTo(35,y);ctx.lineTo(70,y);ctx.stroke();ctx.beginPath();ctx.moveTo(830,y);ctx.lineTo(865,y);ctx.stroke();}
- // sideboard-like cultural signs (no sponsor)
- ctx.fillStyle='#124e4d';ctx.fillRect(95,236,710,17);ctx.fillStyle='#fff';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('TEKNAF BEACH  •  NAF RIVER  •  SHAH PORIR DWIP  •  COASTAL HERITAGE',450,249);
- function player(o,col,num){ctx.fillStyle='#0003';ctx.beginPath();ctx.ellipse(o.x,o.y+19,19,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=col;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='white';ctx.font='bold 14px Arial';ctx.fillText(num,o.x,o.y+5);}
- player(p,'#1269d3','10');player(e,'#d83232','9');
- ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,9,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#263238';ctx.lineWidth=2;ctx.stroke();
- if(goalFlash>0){ctx.fillStyle='#fff';ctx.font='bold 44px system-ui';ctx.fillText('GOAL!',450,190)}
- if(state.over){ctx.fillStyle='#063b50dd';ctx.fillRect(210,205,480,110);ctx.fillStyle='white';ctx.font='bold 28px system-ui';ctx.fillText('ম্যাচ শেষ!',450,250);ctx.font='20px system-ui';ctx.fillText(`আপনি ${state.score} – ${state.opp} প্রতিপক্ষ`,450,285);}
+window.addEventListener("keydown",e=>{
+  const k=e.key.toLowerCase();
+  if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();
+  keys[k==="arrowup"?"up":k==="arrowdown"?"down":k==="arrowleft"?"left":k==="arrowright"?"right":k]=true;
+});
+window.addEventListener("keyup",e=>{
+  const k=e.key.toLowerCase();
+  keys[k==="arrowup"?"up":k==="arrowdown"?"down":k==="arrowleft"?"left":k==="arrowright"?"right":k]=false;
+});
+
+function perspective(x,y){
+  const t=Math.max(0,Math.min(1,(y-290)/260));
+  const scale=.52+.48*t;
+  return {x:450+(x-450)*scale,y:290+(y-290)*scale,scale};
 }
-function resetBall(){b.x=450;b.y=370;b.vx=b.vy=0;p.x=240;p.y=370;e.x=650;e.y=370;}
+function background(){
+  // sky
+  let sky=ctx.createLinearGradient(0,0,0,260);
+  sky.addColorStop(0,"#68bde5");
+  sky.addColorStop(1,"#d8eee6");
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+
+  // Teknaf hills
+  ctx.fillStyle="#47745c";
+  ctx.beginPath();
+  ctx.moveTo(0,190);ctx.lineTo(100,110);ctx.lineTo(230,165);
+  ctx.lineTo(390,75);ctx.lineTo(550,165);ctx.lineTo(730,95);
+  ctx.lineTo(900,170);ctx.lineTo(900,255);ctx.lineTo(0,255);
+  ctx.fill();
+
+  // sea
+  let sea=ctx.createLinearGradient(0,175,0,280);
+  sea.addColorStop(0,"#087da5");sea.addColorStop(1,"#35b7bf");
+  ctx.fillStyle=sea;ctx.fillRect(0,180,W,100);
+  ctx.strokeStyle="#d6ffff88";ctx.lineWidth=2;
+  for(let y=195;y<270;y+=16){
+    ctx.beginPath();
+    for(let x=0;x<=W;x+=10)
+      ctx.lineTo(x,y+Math.sin(x*.025+y)*2);
+    ctx.stroke();
+  }
+
+  // shore and sand
+  ctx.fillStyle="#b8d7c2";ctx.fillRect(0,260,W,22);
+  ctx.fillStyle="#dfbf8b";ctx.fillRect(0,275,W,285);
+  for(let i=0;i<420;i++){
+    ctx.fillStyle=i%2?"#cba878":"#efd3a2";
+    ctx.fillRect((i*137)%900,280+(i*71)%275,2,2);
+  }
+
+  // perspective beach pitch
+  ctx.fillStyle="#c5a777";
+  ctx.beginPath();
+  ctx.moveTo(250,295);ctx.lineTo(650,295);
+  ctx.lineTo(890,550);ctx.lineTo(10,550);ctx.closePath();ctx.fill();
+
+  // sand pitch bands
+  for(let i=0;i<7;i++){
+    const y=310+i*34;
+    ctx.fillStyle=i%2?"#c2a273":"#cfb181";
+    ctx.beginPath();
+    ctx.moveTo(250-i*18,y);ctx.lineTo(650+i*18,y);
+    ctx.lineTo(650+(i+1)*18,y+34);
+    ctx.lineTo(250-(i+1)*18,y+34);ctx.fill();
+  }
+
+  // field lines
+  ctx.strokeStyle="#fff";ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(250,295);ctx.lineTo(650,295);
+  ctx.lineTo(890,550);ctx.lineTo(10,550);ctx.closePath();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(450,295);ctx.lineTo(450,550);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(450,425,75,42,0,0,Math.PI*2);ctx.stroke();
+
+  // goal and net
+  ctx.lineWidth=5;ctx.strokeRect(400,270,100,42);
+  ctx.strokeStyle="#ffffff88";ctx.lineWidth=1;
+  for(let x=405;x<500;x+=10){
+    ctx.beginPath();ctx.moveTo(x,270);ctx.lineTo(x,312);ctx.stroke();
+  }
+  for(let y=280;y<312;y+=8){
+    ctx.beginPath();ctx.moveTo(400,y);ctx.lineTo(500,y);ctx.stroke();
+  }
+
+  // heritage sideline boards
+  const signs=["টেকনাফ সমুদ্রসৈকত","নাফ নদী","শাহপরীর দ্বীপ","উপকূলের ঐতিহ্য"];
+  signs.forEach((s,i)=>{
+    const x=55+i*195;
+    ctx.fillStyle=["#174e48","#235b65","#72563a","#315b45"][i];
+    ctx.fillRect(x,268,185,23);
+    ctx.fillStyle="#fff4dc";ctx.font="bold 13px sans-serif";
+    ctx.textAlign="center";ctx.fillText(s,x+92,284);
+  });
+
+  // warm sunlight
+  const glow=ctx.createRadialGradient(810,75,5,810,75,100);
+  glow.addColorStop(0,"#fff7c9aa");glow.addColorStop(1,"#fff7c900");
+  ctx.fillStyle=glow;ctx.fillRect(700,0,200,180);
+}
+
+function drawPlayer(o,color,num){
+  const q=perspective(o.x,o.y),s=q.scale;
+  // shadow
+  ctx.fillStyle="#44321c66";
+  ctx.beginPath();ctx.ellipse(q.x,q.y+12*s,19*s,7*s,0,0,Math.PI*2);ctx.fill();
+
+  // legs
+  ctx.strokeStyle="#26333a";ctx.lineWidth=5*s;ctx.lineCap="round";
+  ctx.beginPath();
+  ctx.moveTo(q.x-5*s,q.y+8*s);ctx.lineTo(q.x-9*s,q.y+18*s);
+  ctx.moveTo(q.x+5*s,q.y+8*s);ctx.lineTo(q.x+9*s,q.y+18*s);
+  ctx.stroke();
+
+  // jersey
+  ctx.fillStyle=color;
+  ctx.beginPath();ctx.ellipse(q.x,q.y,12*s,15*s,0,0,Math.PI*2);ctx.fill();
+
+  // head
+  ctx.fillStyle="#b9825d";
+  ctx.beginPath();ctx.arc(q.x,q.y-17*s,7*s,0,Math.PI*2);ctx.fill();
+
+  ctx.fillStyle="white";ctx.font=`bold ${12*s+2}px Arial`;
+  ctx.textAlign="center";ctx.fillText(num,q.x,q.y+4*s);
+}
+
+function drawBall(){
+  const q=perspective(ball.x,ball.y),s=q.scale;
+  ctx.fillStyle="#44321c55";
+  ctx.beginPath();ctx.ellipse(q.x,q.y+9*s,12*s,4*s,0,0,Math.PI*2);ctx.fill();
+
+  const lift=ball.z*1.3;
+  ctx.fillStyle="white";ctx.beginPath();
+  ctx.arc(q.x,q.y-lift,7*s+1,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#222";ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle="#222";ctx.beginPath();
+  ctx.arc(q.x,q.y-lift,2*s,0,Math.PI*2);ctx.fill();
+}
+
+function kick(isPass){
+  if(ended)return;
+  const d=Math.hypot(ball.x-player.x,ball.y-player.y);
+  if(d>65)return;
+  if(isPass){
+    const a=Math.atan2(teammate.y-ball.y,teammate.x-ball.x);
+    ball.vx=Math.cos(a)*330;ball.vy=Math.sin(a)*330;ball.vz=75;
+    document.getElementById("message").textContent="সতীর্থের দিকে পাস!";
+  }else{
+    const a=Math.atan2(300-ball.y,450-ball.x);
+    ball.vx=Math.cos(a)*490;ball.vy=Math.sin(a)*490;ball.vz=130;
+    document.getElementById("message").textContent="শট নেওয়া হয়েছে!";
+  }
+}
+document.getElementById("shoot").addEventListener("pointerdown",e=>{e.preventDefault();kick(false)});
+document.getElementById("pass").addEventListener("pointerdown",e=>{e.preventDefault();kick(true)});
+
+function reset(){
+  ball.x=450;ball.y=430;ball.vx=ball.vy=ball.vz=ball.z=0;
+  player.x=340;player.y=445;enemy.x=650;enemy.y=390;
+}
 function update(dt){
- if(!state.over){state.time=Math.max(0,state.time-dt);if(state.time<=0)state.over=true;}
- if(!state.over){
- let dx=(keys.right?1:0)-(keys.left?1:0),dy=(keys.down?1:0)-(keys.up?1:0),l=Math.hypot(dx,dy)||1;
- p.x+=dx/l*205*dt;p.y+=dy/l*205*dt;p.x=Math.max(85,Math.min(810,p.x));p.y=Math.max(275,Math.min(480,p.y));
- // AI chases ball
- let ax=b.x-e.x,ay=b.y-e.y,al=Math.hypot(ax,ay)||1;e.x+=ax/al*115*dt;e.y+=ay/al*115*dt;e.x=Math.max(85,Math.min(815,e.x));e.y=Math.max(275,Math.min(480,e.y));
- // player ball touch nudges it
- let d=Math.hypot(b.x-p.x,b.y-p.y);if(d<29){b.vx+=(b.x-p.x)*.045;b.vy+=(b.y-p.y)*.045;}
- let de=Math.hypot(b.x-e.x,b.y-e.y);if(de<25){b.vx+=(b.x-e.x)*.035;b.vy+=(b.y-e.y)*.035;}
- b.x+=b.vx;b.y+=b.vy;b.vx*=.985;b.vy*=.985;
- if(b.y<260||b.y>505)b.vy*=-.65;
- if(b.x<45&&b.y>330&&b.y<415){state.opp++;resetBall();goalFlash=1.2;}
- else if(b.x>855&&b.y>330&&b.y<415){state.score++;resetBall();goalFlash=1.2;}
- else {b.x=Math.max(45,Math.min(855,b.x));}
- }
- goalFlash=Math.max(0,goalFlash-dt);document.getElementById('us').textContent=state.score;document.getElementById('them').textContent=state.opp;document.getElementById('clock').textContent=Math.ceil(state.time);
+  if(!ended){
+    time=Math.max(0,time-dt);
+    if(time===0)ended=true;
+
+    let dx=(keys.right||keys.d?1:0)-(keys.left||keys.a?1:0);
+    let dy=(keys.down||keys.s?1:0)-(keys.up||keys.w?1:0);
+    const len=Math.hypot(dx,dy)||1;
+    player.x+=dx/len*190*dt;player.y+=dy/len*190*dt;
+    player.x=Math.max(40,Math.min(860,player.x));
+    player.y=Math.max(315,Math.min(545,player.y));
+
+    // rival follows the ball
+    const ax=ball.x-enemy.x,ay=ball.y-enemy.y;
+    const ad=Math.hypot(ax,ay)||1;
+    enemy.x+=ax/ad*105*dt;enemy.y+=ay/ad*105*dt;
+
+    // ball physics
+    ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+    ball.z+=ball.vz*dt;ball.vz-=400*dt;
+    if(ball.z<0){ball.z=0;ball.vz*=-.25;ball.vx*=.78;ball.vy*=.78}
+    ball.vx*=Math.pow(.985,dt*60);ball.vy*=Math.pow(.985,dt*60);
+
+    // player touches ball
+    const d=Math.hypot(ball.x-player.x,ball.y-player.y);
+    if(d<28&&d>0){ball.vx+=(ball.x-player.x)/d*35;ball.vy+=(ball.y-player.y)/d*35}
+
+    // goal
+    if(ball.y<315&&ball.x>400&&ball.x<500){
+      score++;goalFlash=1.2;reset();
+      document.getElementById("message").textContent="গোল! টেকনাফের গোল!";
+    }
+    if(ball.y>555){ball.y=555;ball.vy*=-.4}
+    if(ball.x<15||ball.x>885)ball.vx*=-.5;
+  }
+  goalFlash=Math.max(0,goalFlash-dt);
+  document.getElementById("score").textContent=
+    `টেকনাফ ${score} — ${enemyScore} প্রতিপক্ষ | ${Math.ceil(time)} সেকেন্ড`;
 }
-function loop(now){let dt=Math.min((now-last)/1000,.04);last=now;update(dt);draw();requestAnimationFrame(loop)}
+function render(){
+  background();
+  drawPlayer(teammate,"#e4d8b9","7");
+  drawPlayer(enemy,"#bd403d","9");
+  drawPlayer(player,"#176bc3","10");
+  drawBall();
+
+  if(goalFlash>0){
+    ctx.fillStyle="white";ctx.font="bold 42px Arial";
+    ctx.textAlign="center";ctx.fillText("GOAL!",450,230);
+  }
+  if(ended){
+    ctx.fillStyle="#082f3bdd";ctx.fillRect(230,220,440,120);
+    ctx.fillStyle="white";ctx.font="bold 30px Arial";
+    ctx.textAlign="center";ctx.fillText("ম্যাচ শেষ",450,270);
+    ctx.font="22px Arial";ctx.fillText(`${score} – ${enemyScore}`,450,310);
+  }
+}
+function loop(now){
+  const dt=Math.min((now-last)/1000,.04);last=now;
+  update(dt);render();requestAnimationFrame(loop);
+}
 requestAnimationFrame(loop);
 </script>
-</body></html>
+</body>
+</html>
